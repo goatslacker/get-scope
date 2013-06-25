@@ -4,7 +4,11 @@
   "description": "get global and function scope",
   "main": "getScope.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "testla test"
+  },
+  "devDependencies": {
+    "esprima": "*",
+    "testla": "*"
   },
   "repository": "",
   "author": "Josh Perez <josh@goatslacker.com>",
