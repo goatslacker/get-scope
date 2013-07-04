@@ -29,6 +29,12 @@ function merge(arr) {
   }, arr, {})
 }
 
+function array_replace(arr, index, value) {
+  var xarr = arr.slice()
+  xarr[index] = value
+  return xarr
+}
+
 function isFunction(node) {
   switch (node.type) {
     case 'FunctionExpression':
@@ -75,33 +81,26 @@ function lookupChain(node) {
 
 //+ replaceOrAdd :: Node, Index, Node -> Node
 function replaceOrAdd(node, index, value) {
-  var xs = null
-
   switch (node.type) {
     case 'ArrayExpression':
-      xs = node.elements.slice()
-      xs[index] = value
-
       return {
         type: 'ArrayExpression',
-        elements: xs
+        elements: array_replace(node.elements, index, value)
       }
     case 'ObjectExpression':
-      xs = toProperties(merge([
-        fromProperties(node.properties),
-        fn.toMap([[index, value]])
-      ]))
-
       return {
         type: 'ObjectExpression',
-        properties: xs
+        properties: toProperties(merge([
+          fromProperties(node.properties),
+          fn.toMap([[index, value]])
+        ]))
       }
     default:
       throw new TypeError('Invalid type specified: ' + node.type)
   }
 }
 
-//+ getValueFromIndex :: Node, Index -> Maybe [Node]
+//+ getValueFromIndex :: Node, Index -> Maybe Node
 function getValueFromIndex(node, index) {
   switch (node.type) {
     case 'ArrayExpression':
@@ -156,8 +155,6 @@ function parseNode(node, scope) {
         : parseAssignment(scope, node.left, node.right)
     case 'FunctionDeclaration':
       return [node.id.name, node]
-    default:
-      return null
   }
 }
 
@@ -171,7 +168,7 @@ function forProgram(ast, globalScope) {
 
   var scope = merge([{}, globalScope])
 
-  var localScope = fn.foldl(function parseProgramNode(scope, node) {
+  var localScope = fn.foldl(function (scope, node) {
     var self = []
 
     switch (node.type) {
@@ -209,9 +206,20 @@ function forFunction(ast, globalScope, params) {
 
   var scope = merge([globalScope, paramScope])
 
-  var localScope = fn.toMap(traverse(ast, function (node) {
-    return parseNode(node, scope)
-  }))
+  var functionBodyNodes = traverse(ast, function (node) {
+    switch (node.type) {
+      case 'ExpressionStatement':
+      case 'VariableDeclarator':
+      case 'AssignmentExpression':
+      case 'FunctionDeclaration':
+        return node
+      default:
+        return null
+    }
+  })
 
-  return merge([scope, localScope])
+  return fn.foldl(function (scope, node) {
+    var localScope = fn.toMap([parseNode(node, scope)])
+    return merge([scope, localScope])
+  }, functionBodyNodes, scope)
 }
