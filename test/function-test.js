@@ -1,20 +1,11 @@
 module.exports = function (getScope, assert, ast, str) {
   var globalScope = getScope.forProgram(ast.fns)
 
-  function assertType(x, type) {
-    assert.equal(x.type, type,
-      'Expected type ' + x.type + ' but received ' + type)
-  }
-
   return {
     'function scope': function () {
       var param = [{ type: 'Literal', value: 2 }]
       var localScope = getScope.forFunction(globalScope.b, globalScope, param)
-
-      function assertExists(x) {
-        assert(localScope.hasOwnProperty(x),
-          'Property ' + x + ' does not exist')
-      }
+      var assertExists = assert.genExistsInScope(localScope)
 
       assertExists('c')
       assertExists('d')
@@ -23,12 +14,12 @@ module.exports = function (getScope, assert, ast, str) {
       assertExists('g')
       assertExists('x')
 
-      assertType(localScope.c, 'Literal')
-      assertType(localScope.d, 'Literal')
-      assertType(localScope.a, 'Literal')
-      assertType(localScope.obj, 'ObjectExpression')
-      assertType(localScope.g, 'FunctionDeclaration')
-      assertType(localScope.x, 'Literal')
+      assert.equalsType(localScope.c, 'Literal')
+      assert.equalsType(localScope.d, 'Literal')
+      assert.equalsType(localScope.a, 'Literal')
+      assert.equalsType(localScope.obj, 'ObjectExpression')
+      assert.equalsType(localScope.g, 'FunctionDeclaration')
+      assert.equalsType(localScope.x, 'Literal')
     }
   }
 }

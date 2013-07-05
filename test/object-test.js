@@ -1,6 +1,6 @@
 module.exports = function (getScope, assert, ast) {
   function assertObj(node) {
-    assert.equal(node.type, 'ObjectExpression')
+    assert.equalsType(node, 'ObjectExpression')
   }
 
   function hasProp(obj, key, value) {

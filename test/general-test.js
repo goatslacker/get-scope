@@ -1,14 +1,6 @@
 module.exports = function (getScope, assert, ast) {
   var scope = getScope.forProgram(ast.general)
-
-  function assertExists(x) {
-    assert(scope.hasOwnProperty(x), 'Property ' + x + ' does not exist')
-  }
-
-  function assertType(x, type) {
-    assert.equal(x.type, type,
-      'Expected type ' + x.type + ' but received ' + type)
-  }
+  var assertExists = assert.genExistsInScope(scope)
 
   return {
     'is in scope': function () {
@@ -18,9 +10,9 @@ module.exports = function (getScope, assert, ast) {
     },
 
     'correct types': function () {
-      assertType(scope.a, 'Literal')
-      assertType(scope.b, 'FunctionDeclaration')
-      assertType(scope.c, 'Literal')
+      assert.equalsType(scope.a, 'Literal')
+      assert.equalsType(scope.b, 'FunctionDeclaration')
+      assert.equalsType(scope.c, 'Literal')
     },
 
     'literal values': function () {

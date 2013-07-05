@@ -1,6 +1,6 @@
 module.exports = function (getScope, assert, ast) {
   function assertArray(arr) {
-    assert.equal(arr.type, 'ArrayExpression')
+    assert.equalsType(arr, 'ArrayExpression')
   }
 
   function assertElements(arr, els) {
