@@ -1,11 +1,13 @@
 {
   "name": "get-scope",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "get global and function scope",
   "main": "getScope.js",
   "scripts": {
     "test": "testla test"
   },
+  "dependencies": {},
+  "files": ["node_modules/fn.js"],
   "devDependencies": {
     "esprima": "*",
     "testla": "*"
