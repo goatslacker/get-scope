@@ -7,12 +7,16 @@
     "test": "testla test"
   },
   "dependencies": {},
-  "files": ["node_modules/fn.js"],
+  "bundledDependencies": [
+    "fn.js"
+  ],
   "devDependencies": {
     "esprima": "*",
     "testla": "*"
   },
-  "repository": "",
+  "repository": {
+    "url": "git://github.com/goatslacker/get-scope.git"
+  },
   "author": "Josh Perez <josh@goatslacker.com>",
   "license": "MIT"
 }
