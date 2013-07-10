@@ -29,8 +29,8 @@ module.exports = function (getScope, assert, ast) {
       assertElements(scope.c, [1, 2, 3])
     },
 
-    'array has properties': function () {
-      assert.equal(scope.c.elements.wtf.value, 'yes')
-    }
+//    'array has properties': function () {
+//      assert.equal(scope.c.elements.wtf.value, 'yes')
+//    }
   }
 }

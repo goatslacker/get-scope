@@ -6,10 +6,9 @@
   "scripts": {
     "test": "testla test"
   },
-  "dependencies": {},
-  "bundledDependencies": [
-    "fn.js"
-  ],
+  "dependencies": {
+    "fu": "*"
+  },
   "devDependencies": {
     "esprima": "*",
     "testla": "*"

@@ -1,4 +1,4 @@
-module.exports = function (getScope, assert, ast, fn, str) {
+module.exports = function (getScope, assert, ast, fu, str) {
   var scope = getScope.forProgram(ast.chain)
 
   function assertChain(expected, actual) {
@@ -7,10 +7,14 @@ module.exports = function (getScope, assert, ast, fn, str) {
       ' expected ' + expected + ' actual ' + str(actual))
   }
 
+  function getPropertyValue(x) {
+    return x.name || x.value
+  }
+
   function assertChainedObject(expected, chain) {
-    var actual = fn.foldl(function (obj, prop) {
+    var actual = fu.foldl(function (obj, prop) {
       return obj.properties.filter(function (x) {
-        var key = fn.getPropertyValue(x.key)
+        var key = getPropertyValue(x.key)
         return key === prop
       }).pop().value
     }, chain).value
@@ -19,7 +23,7 @@ module.exports = function (getScope, assert, ast, fn, str) {
   }
 
   function assertChainedArray(expected, chain) {
-    var actual = fn.foldl(function (obj, prop) {
+    var actual = fu.foldl(function (obj, prop) {
       return obj.elements[prop]
     }, chain).value
 

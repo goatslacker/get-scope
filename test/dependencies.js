@@ -28,7 +28,7 @@ module.exports = function (assert) {
       general: loadAndParse('general'),
       fns: loadAndParse('function')
     },
-    fn: require('fn'),
+    fu: require('fu'),
     getScope: require('../'),
     util: util,
     str: function (v) {

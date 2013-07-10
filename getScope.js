@@ -8,25 +8,23 @@ module.exports = {
 //+ @type Scope = Object
 //+ @type Index = String | Number
 
-var fn = require('fn')
+var fu = require('fu')
 
 function traverse(object, visitor) {
   function walkTree(key) {
     var child = object[key]
-    var type = fn.toString(child)
+    var type = toString.call(child)
     return type == '[object Object]' || type == '[object Array]'
       ? traverse(child, visitor)
       : null
   }
-  return fn.compact(
+  return fu.compact(
     [visitor(object)].concat(
-      fn.concatMap(walkTree, Object.keys(object))))
+      fu.concatMap(walkTree, Object.keys(object))))
 }
 
-function merge(arr) {
-  return fn.foldl(function (scope, x) {
-    return fn.mergeInto(scope, x)
-  }, arr, {})
+function getPropertyValue(x) {
+  return x.name || x.value
 }
 
 function array_replace(arr, index, value) {
@@ -47,8 +45,8 @@ function isFunction(node) {
 
 //+ fromProperties :: [Node] -> Object
 function fromProperties(obj) {
-  return fn.toMap(fn.map(function (x) {
-    return [fn.getPropertyValue(x.key), x.value]
+  return fu.intoObject(fu.map(function (x) {
+    return [getPropertyValue(x.key), x.value]
   }, obj))
 }
 
@@ -90,10 +88,10 @@ function replaceOrAdd(node, index, value) {
     case 'ObjectExpression':
       return {
         type: 'ObjectExpression',
-        properties: toProperties(merge([
+        properties: toProperties(fu.merge(
           fromProperties(node.properties),
-          fn.toMap([[index, value]])
-        ]))
+          fu.intoObject([[index, value]])
+        ))
       }
     default:
       throw new TypeError('Invalid type specified: ' + node.type)
@@ -118,8 +116,8 @@ function setCollectionValue(node, indices, value) {
     return value
   }
 
-  var index = fn.head(indices)
-  var rest = fn.tail(indices)
+  var index = fu.head(indices)
+  var rest = fu.tail(indices)
 
   return replaceOrAdd(
     node,
@@ -131,13 +129,13 @@ function setCollectionValue(node, indices, value) {
 //+ parseAssignment :: Scope, Node, Node -> [String, Node]
 function parseAssignment(scope, node, value) {
   var obj = lookupChain(node)
-  var ref = fn.last(obj).name
+  var ref = fu.last(obj).name
 
   if (!scope.hasOwnProperty(ref)) {
     throw new Error('Undefined variable ' + ref)
   }
 
-  var indices = fn.map(fn.getPropertyValue, fn.init(obj).reverse())
+  var indices = fu.map(getPropertyValue, fu.init(obj).reverse())
 
   return [ref, setCollectionValue(scope[ref], indices, value)]
 }
@@ -166,14 +164,15 @@ function forProgram(ast, globalScope) {
     throw new Error('forProgram is for getting global scope')
   }
 
-  var scope = merge([{}, globalScope])
+  var scope = fu.merge({}, globalScope)
 
-  var localScope = fn.foldl(function (scope, node) {
+  var localScope = fu.foldl(function (scope, node) {
     var self = []
 
+    // XXX what if var declarations are hidden inside an if statement or something?
     switch (node.type) {
       case 'VariableDeclaration':
-        self = fn.map(function (x) {
+        self = fu.map(function (x) {
           return x.type == 'VariableDeclarator'
             ? [x.id.name, x.init]
             : []
@@ -186,10 +185,10 @@ function forProgram(ast, globalScope) {
           : [value]
     }
 
-    return merge([scope, fn.toMap(self)])
+    return fu.merge(scope, fu.intoObject(self))
   }, ast.body, {})
 
-  return merge([globalScope, localScope])
+  return fu.merge(globalScope, localScope)
 }
 
 //+ forFunction :: AST, Scope, [AST] -> Scope
@@ -200,11 +199,11 @@ function forFunction(ast, globalScope, params) {
     throw new Error('forFunction is for getting function scope')
   }
 
-  var paramScope = fn.toMap(fn.zipWith(function (node, value) {
+  var paramScope = fu.intoObject(fu.zipWith(function (node, value) {
     return [node.name, value]
   }, ast.params, params))
 
-  var scope = merge([globalScope, paramScope])
+  var scope = fu.merge(globalScope, paramScope)
 
   var functionBodyNodes = traverse(ast, function (node) {
     switch (node.type) {
@@ -218,8 +217,8 @@ function forFunction(ast, globalScope, params) {
     }
   })
 
-  return fn.foldl(function (scope, node) {
-    var localScope = fn.toMap([parseNode(node, scope)])
-    return merge([scope, localScope])
+  return fu.foldl(function (scope, node) {
+    var localScope = fu.intoObject([parseNode(node, scope)])
+    return fu.merge(scope, localScope)
   }, functionBodyNodes, scope)
 }
