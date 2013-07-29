@@ -1,6 +1,6 @@
 {
   "name": "get-scope",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "get global and function scope",
   "main": "getScope.js",
   "scripts": {
