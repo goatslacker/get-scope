@@ -1,5 +1,8 @@
 # get-scope
 
+[![Build Status](https://secure.travis-ci.org/goatslacker/get-scope.png)](http://travis-ci.org/goatslacker/get-scope)
+[![NPM version](https://badge.fury.io/js/get-scope.png)](http://badge.fury.io/js/get-scope)
+
 ## Install
 
     npm install get-scope
