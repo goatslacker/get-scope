@@ -1,5 +1,6 @@
 var esprima = require('esprima')
 var fs = require('fs')
+var fu = require('fu')
 var util = require('util')
 
 function loadAndParse(str) {
@@ -14,9 +15,14 @@ module.exports = function (assert) {
         'Expected type ' + x.type + ' but received ' + type)
     },
     genExistsInScope: function (scope) {
-      return function (x) {
+      function existsInScope(x) {
         assert(scope.hasOwnProperty(x), 'Property ' + x + ' does not exist')
       }
+      existsInScope.many = function (args) {
+        fu.map(existsInScope, [].slice.call(arguments, 0))
+      }
+
+      return existsInScope
     }
   })
 

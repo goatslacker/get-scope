@@ -10,17 +10,37 @@ module.exports = {
 
 var fu = require('fu')
 
-function traverse(object, visitor) {
+function traverse(object, visitor, exit) {
   function walkTree(key) {
+    if (exit && exit(object) === true) {
+      return null
+    }
     var child = object[key]
     var type = toString.call(child)
     return type == '[object Object]' || type == '[object Array]'
-      ? traverse(child, visitor)
+      ? traverse(child, visitor, exit)
       : null
   }
   return fu.compact(
     [visitor(object)].concat(
       fu.concatMap(walkTree, Object.keys(object))))
+}
+
+function createsScope(node) {
+  switch (node.type) {
+    case 'ExpressionStatement':
+    case 'VariableDeclarator':
+    case 'AssignmentExpression':
+    case 'FunctionDeclaration':
+      return node
+    default:
+      return null
+  }
+}
+
+function reduceScope(scope, node) {
+  var localScope = fu.intoObject([parseNode(node, scope)])
+  return fu.merge(scope, localScope)
 }
 
 function getPropertyValue(x) {
@@ -165,28 +185,8 @@ function forProgram(ast, globalScope) {
   }
 
   var scope = fu.merge({}, globalScope)
-
-  var localScope = fu.foldl(function (scope, node) {
-    var self = []
-
-    // XXX what if var declarations are hidden inside an if statement or something?
-    switch (node.type) {
-      case 'VariableDeclaration':
-        self = fu.map(function (x) {
-          return x.type == 'VariableDeclarator'
-            ? [x.id.name, x.init]
-            : []
-        }, node.declarations)
-        break
-      default:
-        var value = parseNode(node, scope)
-        self = value == null
-          ? []
-          : [value]
-    }
-
-    return fu.merge(scope, fu.intoObject(self))
-  }, ast.body, {})
+  var globalBodyNodes = traverse(ast, createsScope, isFunction)
+  var localScope = fu.foldl(reduceScope, globalBodyNodes, scope)
 
   return fu.merge(globalScope, localScope)
 }
@@ -202,23 +202,8 @@ function forFunction(ast, globalScope, params) {
   var paramScope = fu.intoObject(fu.zipWith(function (node, value) {
     return [node.name, value]
   }, ast.params, params))
-
   var scope = fu.merge(globalScope, paramScope)
+  var functionBodyNodes = traverse(ast, createsScope)
 
-  var functionBodyNodes = traverse(ast, function (node) {
-    switch (node.type) {
-      case 'ExpressionStatement':
-      case 'VariableDeclarator':
-      case 'AssignmentExpression':
-      case 'FunctionDeclaration':
-        return node
-      default:
-        return null
-    }
-  })
-
-  return fu.foldl(function (scope, node) {
-    var localScope = fu.intoObject([parseNode(node, scope)])
-    return fu.merge(scope, localScope)
-  }, functionBodyNodes, scope)
+  return fu.foldl(reduceScope, functionBodyNodes, scope)
 }

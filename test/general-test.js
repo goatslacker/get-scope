@@ -4,9 +4,7 @@ module.exports = function (getScope, assert, ast) {
 
   return {
     'is in scope': function () {
-      assertExists('a')
-      assertExists('b')
-      assertExists('c')
+      assertExists.many('a', 'b', 'c', 'd', 'e')
     },
 
     'correct types': function () {
