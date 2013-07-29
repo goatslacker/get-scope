@@ -4,7 +4,7 @@
   "description": "get global and function scope",
   "main": "getScope.js",
   "scripts": {
-    "test": "/node_modules/testla/bin/testla test"
+    "test": "./node_modules/testla/bin/testla test"
   },
   "dependencies": {
     "fu": "*"
