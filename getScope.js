@@ -39,7 +39,8 @@ function createsScope(node) {
 }
 
 function reduceScope(scope, node) {
-  var localScope = fu.intoObject([parseNode(node, scope)])
+  var kv = parseNode(node, scope)
+  var localScope = kv ? fu.intoObject([kv]) : {}
   return fu.merge(scope, localScope)
 }
 
@@ -173,6 +174,8 @@ function parseNode(node, scope) {
         : parseAssignment(scope, node.left, node.right)
     case 'FunctionDeclaration':
       return [node.id.name, node]
+    default:
+      return null
   }
 }
 
